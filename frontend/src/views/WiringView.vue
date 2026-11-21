@@ -6,6 +6,7 @@ import { api } from '../api/client'
 import { useResourceStore } from '../stores/resource'
 import StatusTag from '../components/ui/StatusTag.vue'
 import Icon from '../components/ui/Icon.vue'
+import CordHistoryDrawer from '../components/wiring/CordHistoryDrawer.vue'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -88,14 +89,30 @@ async function removeCord(id: number) {
   })
 }
 
+const historyCordId = ref<number | null>(null)
+
+function fmtTime(ts: string | null | undefined) {
+  return ts ? ts.replace('T', ' ').slice(0, 16) : '—'
+}
+
 const cordCols = computed<DataTableColumns<any>>(() => [
   { title: '#', key: 'id', width: 56, render: (r) => h('span', { class: 'dim mono' }, String(r.id)) },
-  { title: 'A 端', key: 'a', minWidth: 190, render: (r) => store.portLabel(store.portById[r.port_a_id]) },
-  { title: 'B 端', key: 'b', minWidth: 190, render: (r) => store.portLabel(store.portById[r.port_b_id]) },
-  { title: '型号', key: 'cord_type', width: 150 },
-  { title: '长度', key: 'length_m', width: 80, render: (r) => (r.length_m ? `${r.length_m} m` : '—') },
+  { title: 'A 端', key: 'a', minWidth: 175, render: (r) => store.portLabel(store.portById[r.port_a_id]) },
+  { title: 'B 端', key: 'b', minWidth: 175, render: (r) => store.portLabel(store.portById[r.port_b_id]) },
+  { title: '型号', key: 'cord_type', width: 136 },
   {
-    title: '', key: 'act', width: 70,
+    title: '最后更新', key: 'updated_at', width: 132,
+    render: (r) => h('span', { class: 'dim mono', style: 'font-size:11px' }, fmtTime(r.updated_at)),
+  },
+  {
+    title: '记录', key: 'hist', width: 62,
+    render: (r) => h(NButton, {
+      size: 'tiny', quaternary: true, type: 'primary',
+      onClick: () => { historyCordId.value = r.id },
+    }, { default: () => '明细' }),
+  },
+  {
+    title: '', key: 'act', width: 62,
     render: (r) => h(NButton, { size: 'tiny', quaternary: true, type: 'error', onClick: () => removeCord(r.id) },
       { default: () => '拆除' }),
   },
@@ -745,6 +762,8 @@ onMounted(async () => {
         </n-modal>
       </n-tab-pane>
     </n-tabs>
+
+    <CordHistoryDrawer v-model:cord-id="historyCordId" @changed="loadCords" />
   </div>
 </template>
 
@@ -896,5 +915,17 @@ onMounted(async () => {
 .rm-foot {
   display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px;
   border-top: 1px solid var(--border);
+}
+
+/* ============ 响应式 ============ */
+@media (max-width: 900px) {
+  .grid2 { grid-template-columns: 1fr; }
+  .splice-grid2 { grid-template-columns: 1fr; }
+  .splice-cables { gap: 8px; }
+  .splice-cables .sc-item { flex: 1 1 45%; }
+  .splice-cables .sc-item :deep(.n-select) { width: 100% !important; }
+  .core-body { max-height: 34vh; }
+  .rule-modal { width: 94vw; }
+  .rm-th, .rm-tr { grid-template-columns: 30px 1fr 1fr 46px; padding: 6px 8px; }
 }
 </style>

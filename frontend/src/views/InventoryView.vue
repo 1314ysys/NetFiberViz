@@ -690,4 +690,13 @@ const roomLabel = computed(() => roomPath(store.rooms as any, selRoom.value))
   border-radius: 8px; padding: 10px 14px; }
 .im-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px;
   border-top: 1px solid var(--border); }
+
+/* ============ 响应式 ============ */
+@media (max-width: 900px) {
+  .inv { grid-template-columns: 1fr; height: auto; }
+  .tree-panel { max-height: 42vh; }
+  .detail { min-height: 40vh; }
+  .cards { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  .slot { width: 52px; height: 36px; }
+}
 </style>

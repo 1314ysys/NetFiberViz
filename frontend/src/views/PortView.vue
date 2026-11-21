@@ -16,6 +16,7 @@ import ContextMenu from '../components/ui/ContextMenu.vue'
 import type { MenuItem } from '../components/ui/ContextMenu.vue'
 import Breadcrumb from '../components/ui/Breadcrumb.vue'
 import type { Crumb } from '../components/ui/Breadcrumb.vue'
+import CordHistoryDrawer from '../components/wiring/CordHistoryDrawer.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -251,13 +252,30 @@ function onMenuSelect(key: string) {
 }
 
 /* ---------------- 连接表 ---------------- */
+const historyCordId = ref<number | null>(null)
+
+function fmtTime(ts: string | null | undefined) {
+  return ts ? ts.replace('T', ' ').slice(0, 16) : '—'
+}
+
 const cordCols = computed<DataTableColumns<any>>(() => [
-  { title: '#', key: 'id', width: 60, render: (r) => h('span', { class: 'mono dim' }, String(r.id)) },
-  { title: 'A 端', key: 'a', minWidth: 190, render: (r) => store.portLabel(store.portById[r.port_a_id]) },
-  { title: 'B 端', key: 'b', minWidth: 190, render: (r) => store.portLabel(store.portById[r.port_b_id]) },
-  { title: '型号', key: 'cord_type', width: 140 },
+  { title: '#', key: 'id', width: 56, render: (r) => h('span', { class: 'mono dim' }, String(r.id)) },
+  { title: 'A 端', key: 'a', minWidth: 170, render: (r) => store.portLabel(store.portById[r.port_a_id]) },
+  { title: 'B 端', key: 'b', minWidth: 170, render: (r) => store.portLabel(store.portById[r.port_b_id]) },
+  { title: '型号', key: 'cord_type', width: 126 },
   {
-    title: '', key: 'act', width: 76,
+    title: '最后更新', key: 'updated_at', width: 132,
+    render: (r) => h('span', { class: 'mono dim', style: 'font-size:11px' }, fmtTime(r.updated_at)),
+  },
+  {
+    title: '记录', key: 'hist', width: 62,
+    render: (r) => h(NButton, {
+      size: 'tiny', quaternary: true, type: 'primary',
+      onClick: () => { historyCordId.value = r.id },
+    }, { default: () => '明细' }),
+  },
+  {
+    title: '', key: 'act', width: 62,
     render: (r) => h(NButton, {
       size: 'tiny', quaternary: true, type: 'error',
       onClick: () => dialog.warning({
@@ -413,6 +431,8 @@ function portOf(slot: any): Port | null { return slot.port || null }
     <ContextMenu v-model:show="menu.show" :x="menu.x" :y="menu.y" :title="menu.title"
                  :items="menu.items" @select="onMenuSelect" />
 
+    <CordHistoryDrawer v-model:cord-id="historyCordId" @changed="reload" />
+
     <!-- 端口悬停详情 -->
     <Teleport to="body">
       <div v-if="hover.show && hoverInfo" class="port-tip" :style="tipStyle">
@@ -518,4 +538,13 @@ function portOf(slot: any): Port | null { return slot.port || null }
 .tip-row span { color: var(--text-3); flex: none; min-width: 62px; }
 .tip-row b { font-weight: 500; color: var(--text-1); word-break: break-all; }
 .tip-empty { color: var(--text-3); font-size: 11.5px; }
+
+/* ============ 响应式 ============ */
+@media (max-width: 900px) {
+  .body { grid-template-columns: 1fr; }
+  .head { flex-wrap: wrap; gap: 8px; }
+  .port { width: 38px; height: 42px; }
+  .port.slot { width: 40px; height: 40px; }
+  .cords-panel { min-height: 260px; }
+}
 </style>

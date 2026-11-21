@@ -1252,4 +1252,12 @@ onBeforeUnmount(() => {
 .tr-remark { color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tip-ok { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);
   font-size: 11px; color: var(--c-used); }
+
+/* ============ 响应式 ============ */
+@media (max-width: 767px) {
+  .toolbar { flex-wrap: wrap; height: auto; padding: 8px 10px; gap: 6px; }
+  .sep-dot { display: none; }
+  .zoom-val { width: 36px; }
+  .obj-tip { max-width: 76vw; }
+}
 </style>

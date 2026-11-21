@@ -221,4 +221,10 @@ const missingCols = computed<DataTableColumns<any>>(() => [
   padding: 10px 16px; border-top: 1px solid var(--border); }
 .actions { display: flex; justify-content: flex-end; }
 :deep(.err-txt) { color: var(--c-fault); font-size: 12px; }
+
+/* ============ 响应式 ============ */
+@media (max-width: 900px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .lldp { max-width: 100%; }
+}
 </style>

@@ -35,6 +35,10 @@ COLUMNS: list[tuple[str, str, str]] = [
     ("devices", "u_height", "INTEGER DEFAULT 1"),
     ("devices", "port_layout", "VARCHAR(16) DEFAULT 'horizontal'"),
     ("devices", "panel_width", "INTEGER DEFAULT 480"),
+    # 跳纤：最后更新时间 / 更新人 / 复核时间
+    ("patch_cords", "updated_at", "DATETIME"),
+    ("patch_cords", "updated_by", "INTEGER"),
+    ("patch_cords", "verified_at", "DATETIME"),
     # 端口：分组名与组序（分组成排）
     ("ports", "group_name", "VARCHAR(64) DEFAULT ''"),
     ("ports", "group_seq", "INTEGER DEFAULT 0"),
@@ -89,6 +93,14 @@ async def ensure_columns(conn: AsyncConnection) -> list[str]:
             log.info("backfilled u_height for %d devices", len(rows))
         except Exception as e:
             log.warning("backfill u_height failed: %s", e)
+    # 数据回填：跳纤的最后更新时间缺失时用创建时间补齐（幂等）
+    try:
+        await conn.execute(text(
+            "UPDATE patch_cords SET updated_at = created_at "
+            "WHERE updated_at IS NULL AND created_at IS NOT NULL"))
+    except Exception as e:
+        log.warning("backfill patch_cords.updated_at failed: %s", e)
+
     # 数据回填：历史设备端口没有分组信息，按接口类型归组，保证前端"分组成排"可显示
     try:
         await conn.execute(text("""

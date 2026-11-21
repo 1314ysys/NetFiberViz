@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSessionStore } from '../../stores/session'
 import { useResourceStore } from '../../stores/resource'
@@ -44,6 +44,26 @@ const activePath = computed(() => {
   if (seg === '/interior' || seg === '/ports') return '/topology'
   return seg
 })
+
+/** 移动端底部导航：只放最常用的 5 个入口 */
+const MOBILE_NAV: NavItem[] = [
+  { path: '/inventory', label: '台账', icon: 'grid', group: '' },
+  { path: '/topology', label: '画布', icon: 'topology', group: '' },
+  { path: '/wiring', label: '布线', icon: 'cable', group: '' },
+  { path: '/links', label: '链路', icon: 'link', group: '' },
+  { path: '/changelog', label: '审计', icon: 'history', group: '' },
+]
+
+/** 移动端"更多"抽屉 */
+const moreOpen = ref(false)
+const moreItems = computed(() =>
+  NAV.filter(n => !MOBILE_NAV.some(m => m.path === n.path))
+     .filter(n => !n.coreOnly || session.isCore))
+
+function goMobile(path: string) {
+  moreOpen.value = false
+  go(path)
+}
 
 function go(path: string) {
   if (path === '/topology') {
@@ -123,6 +143,45 @@ onMounted(async () => {
         <slot />
       </div>
     </div>
+
+    <!-- 移动端底部导航 -->
+    <nav class="mobile-nav">
+      <button v-for="it in MOBILE_NAV" :key="it.path" class="mn-item"
+              :class="{ active: activePath === it.path }" @click="go(it.path)">
+        <Icon :name="it.icon" :size="19" />
+        <span>{{ it.label }}</span>
+      </button>
+      <button class="mn-item" :class="{ active: moreOpen }" @click="moreOpen = !moreOpen">
+        <Icon name="grid" :size="19" />
+        <span>更多</span>
+      </button>
+    </nav>
+
+    <!-- 移动端更多菜单 -->
+    <Transition name="sheet">
+      <div v-if="moreOpen" class="mn-sheet" @pointerdown.self="moreOpen = false">
+        <div class="mn-sheet-inner">
+          <div class="mn-sheet-head">
+            <span>{{ session.user?.display_name || session.user?.username || '未登录' }}</span>
+            <button class="mn-x" @click="moreOpen = false">✕</button>
+          </div>
+          <div class="mn-sheet-grid">
+            <button v-for="it in moreItems" :key="it.path" class="mn-sheet-item" @click="goMobile(it.path)">
+              <Icon :name="it.icon" :size="17" />
+              <span>{{ it.label }}</span>
+            </button>
+            <button class="mn-sheet-item" @click="moreOpen = false; ui.toggle()">
+              <Icon :name="ui.theme === 'dark' ? 'sun' : 'moon'" :size="17" />
+              <span>{{ ui.theme === 'dark' ? '浅色' : '深色' }}</span>
+            </button>
+            <button class="mn-sheet-item" @click="moreOpen = false; session.logout()">
+              <Icon name="logout" :size="17" />
+              <span>退出</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <!-- 全局布线：A 端悬浮窗 + 跨机柜选择器 + 新建跳纤弹窗 -->
     <PendingPortDock />
@@ -206,4 +265,87 @@ onMounted(async () => {
 .screen-link:hover { color: var(--accent); border-color: var(--border-strong); background: var(--bg-hover); }
 
 .content { flex: 1; overflow: auto; padding: 18px 20px 24px; }
+
+/* 移动端底部导航与抽屉（默认隐藏，<=767px 显示） */
+.mobile-nav { display: none; }
+.mn-sheet { display: none; }
+
+/* ============ 平板：侧边栏收窄为图标条 ============ */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .side { width: 64px; }
+  .brand { justify-content: center; padding: 14px 0 10px; }
+  .brand-txt { display: none; }
+  .nav { padding: 6px 8px; }
+  .nav-label { display: none; }
+  .nav-item { justify-content: center; padding: 9px 0; }
+  .nav-item span { display: none; }
+  .nav-item.active::before { left: -8px; }
+  .side-foot .user { justify-content: center; }
+  .user-txt { display: none; }
+  .side-foot .icon-btn { display: none; }
+  .content { padding: 14px 16px 20px; }
+}
+
+/* ============ 手机：隐藏侧边栏，改用底部 Tab ============ */
+@media (max-width: 767px) {
+  .side { display: none; }
+
+  .topbar {
+    height: 48px; padding: 0 12px; gap: 6px;
+  }
+  .page-title { font-size: 14px; }
+  .page-sub { display: none; }
+  .screen-link span { display: none; }
+  .screen-link { padding: 0 8px; }
+
+  .content {
+    padding: 10px 10px calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 4500;
+    display: flex; align-items: stretch;
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, .18);
+  }
+  .mn-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 3px; border: none; background: transparent;
+    color: var(--text-3); font-size: 10.5px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mn-item.active { color: var(--accent); }
+  .mn-item:active { background: var(--bg-hover); }
+
+  .mn-sheet {
+    display: block; position: fixed; inset: 0; z-index: 4600;
+    background: rgba(0, 0, 0, .45); backdrop-filter: blur(2px);
+    display: flex; align-items: flex-end;
+  }
+  .mn-sheet-inner {
+    width: 100%; background: var(--bg-panel);
+    border-radius: 14px 14px 0 0; border-top: 1px solid var(--border-strong);
+    padding: 14px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, .35);
+  }
+  .mn-sheet-head {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-2); margin-bottom: 14px;
+  }
+  .mn-x { background: none; border: none; color: var(--text-3); font-size: 14px; }
+  .mn-sheet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .mn-sheet-item {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 14px 6px; border-radius: 10px; cursor: pointer;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    color: var(--text-2); font-size: 11.5px;
+  }
+  .mn-sheet-item:active { background: var(--bg-hover); }
+}
+
+.sheet-enter-active, .sheet-leave-active { transition: opacity .18s ease; }
+.sheet-enter-from, .sheet-leave-to { opacity: 0; }
 </style>

@@ -30,6 +30,12 @@ class PatchCord(Base):
     remark: Mapped[str] = mapped_column(Text, default="")
     created_by: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    # 最后更新时间：创建/修改/拆除均会刷新，供台账排序与"久未复核"筛查
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, index=True)
+    updated_by: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # 复核标记：用于周期性核实物理连接是否仍存在
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class Interconnect(Base):

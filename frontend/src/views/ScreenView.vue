@@ -318,4 +318,15 @@ function exit() { router.push('/inventory') }
   .sc-main { grid-template-columns: 1fr 1fr; }
   .sc-main > :last-child { grid-column: span 2; }
 }
+
+/* ============ 手机大屏 ============ */
+@media (max-width: 767px) {
+  .screen { padding: 16px 12px; }
+  .sc-brand h1 { font-size: 16px; }
+  .stat-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .sc-main { grid-template-columns: 1fr; }
+  .sc-main > :last-child { grid-column: auto; }
+  .clock { font-size: 13px; }
+  .sc-right { gap: 10px; }
+}
 </style>

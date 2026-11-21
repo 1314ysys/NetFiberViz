@@ -190,4 +190,9 @@ onMounted(async () => {
 .tip-panel { max-width: 100%; }
 .rules { margin: 0; padding-left: 18px; line-height: 2; color: var(--text-2); font-size: 12.5px; }
 .rules b { color: var(--text-1); }
+
+/* ============ 响应式 ============ */
+@media (max-width: 767px) {
+  .rules { padding-left: 14px; line-height: 1.9; }
+}
 </style>

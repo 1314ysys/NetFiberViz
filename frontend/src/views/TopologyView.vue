@@ -538,4 +538,11 @@ onBeforeUnmount(() => clearTimeout(saveTimer))
 }
 .canvas:active { cursor: grabbing; }
 .node { cursor: pointer; }
-.node.sel > rect:first-child { stroke: var(--accent); stroke-width: 1.6; filter: drop-shadow(0 0 10px var(--accent-soft)); }</style>
+.node.sel > rect:first-child { stroke: var(--accent); stroke-width: 1.6; filter: drop-shadow(0 0 10px var(--accent-soft)); }
+/* ============ 响应式 ============ */
+@media (max-width: 767px) {
+  .toolbar { flex-wrap: wrap; height: auto; padding: 8px 10px; gap: 6px; }
+  .hint { display: none; }
+  .zoom-val { width: 36px; }
+}
+</style>

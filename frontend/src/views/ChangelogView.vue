@@ -104,4 +104,9 @@ onMounted(load)
   border-radius: 8px; font-size: 11px; color: var(--text-2);
   max-height: 220px; overflow: auto; white-space: pre-wrap; word-break: break-all;
 }
+
+/* ============ 响应式 ============ */
+@media (max-width: 767px) {
+  :deep(.expand) { grid-template-columns: 1fr; }
+}
 </style>

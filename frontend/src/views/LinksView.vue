@@ -162,4 +162,11 @@ onMounted(async () => {
 .diagram-scroll { overflow-x: auto; padding-bottom: 6px; }
 .empty-hint { color: var(--text-3); font-size: 12px; text-align: center; padding: 28px 0; }
 .panel-body.no-pad { padding: 0; }
+
+/* ============ 响应式 ============ */
+@media (max-width: 900px) {
+  .trace-bar { flex-direction: column; align-items: stretch; }
+  .field { min-width: 0; }
+  .arrow { display: none; }
+}
 </style>
