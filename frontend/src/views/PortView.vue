@@ -17,6 +17,7 @@ import type { MenuItem } from '../components/ui/ContextMenu.vue'
 import Breadcrumb from '../components/ui/Breadcrumb.vue'
 import type { Crumb } from '../components/ui/Breadcrumb.vue'
 import CordHistoryDrawer from '../components/wiring/CordHistoryDrawer.vue'
+import { useLongPress } from '../composables/useLongPress'
 
 const route = useRoute()
 const router = useRouter()
@@ -187,6 +188,13 @@ const tipStyle = computed(() => {
 /* ---------------- 右键菜单 ---------------- */
 const menu = ref<{ show: boolean; x: number; y: number; title: string; items: MenuItem[]; port: Port | null }>(
   { show: false, x: 0, y: 0, title: '', items: [], port: null })
+
+/** 移动端长按打开菜单 */
+const lp = useLongPress()
+
+function openPortMenuAt(pos: { x: number; y: number }, p: Port | null) {
+  openPortMenu({ clientX: pos.x, clientY: pos.y, preventDefault() { }, stopPropagation() { } } as any, p)
+}
 
 function openPortMenu(evt: MouseEvent, p: Port | null) {
   evt.preventDefault(); evt.stopPropagation()
@@ -377,6 +385,8 @@ function portOf(slot: any): Port | null { return slot.port || null }
                         @click="onPortClick(p)"
                         @mouseenter="onPortEnter($event, p)"
                         @mouseleave="onPortLeave"
+                        @pointerdown="lp.start($event, (pos) => openPortMenuAt(pos, p))"
+                        @pointerup="lp.cancel" @pointermove="lp.move" @pointercancel="lp.cancel"
                         @contextmenu.prevent="openPortMenu($event, p)">
                   <PortShape :shape="shapeOf(store.portTypes, p.port_type)" :size="15"
                              :fill="`var(--c-${p.status})`"
@@ -403,6 +413,8 @@ function portOf(slot: any): Port | null { return slot.port || null }
                         @click="onPortClick(portOf(s))"
                         @mouseenter="onPortEnter($event, portOf(s))"
                         @mouseleave="onPortLeave"
+                        @pointerdown="lp.start($event, (pos) => openPortMenuAt(pos, portOf(s)))"
+                        @pointerup="lp.cancel" @pointermove="lp.move" @pointercancel="lp.cancel"
                         @contextmenu.prevent="openPortMenu($event, portOf(s))">
                   <PortShape :shape="shapeOf(store.portTypes, s.port?.port_type || 'LC/UPC')" :size="14"
                              :fill="`var(--c-${s.port?.status || 'free'})`"
@@ -543,8 +555,10 @@ function portOf(slot: any): Port | null { return slot.port || null }
 @media (max-width: 900px) {
   .body { grid-template-columns: 1fr; }
   .head { flex-wrap: wrap; gap: 8px; }
-  .port { width: 38px; height: 42px; }
-  .port.slot { width: 40px; height: 40px; }
+  .port { width: 46px; height: 50px; font-size: 10px; }
+  .port.slot { width: 48px; height: 48px; }
+  .port-row { gap: 8px; }
+  .slot-row { gap: 6px; }
   .cords-panel { min-height: 260px; }
 }
 </style>

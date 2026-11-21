@@ -7,6 +7,7 @@ import { useResourceStore, DEVICE_TYPE_LABEL } from '../stores/resource'
 import { useSessionStore } from '../stores/session'
 import { familyColorOf, shapeOf } from '../utils/portTypes'
 import { useCanvas } from '../composables/useCanvas'
+import { useLongPress } from '../composables/useLongPress'
 import Icon from '../components/ui/Icon.vue'
 import PortShape from '../components/canvas/PortShape.vue'
 import DeviceDesigner from '../components/canvas/DeviceDesigner.vue'
@@ -457,11 +458,35 @@ let dragCtx: null | {
   trays?: { id: number; x: number; y: number }[]
 } = null
 
+/** 移动端长按 = 右键菜单（对象 / 画布各一个实例） */
+const lpItem = useLongPress()
+const lpCanvas = useLongPress()
+
+function onCanvasDown(evt: PointerEvent) {
+  if (cv.trackPointerDown(evt)) return
+  selected.value = null
+  cv.startPan(evt)
+  lpCanvas.start(evt, (pos) => {
+    cv.endDrag()
+    openCanvasMenu({ clientX: pos.x, clientY: pos.y, preventDefault() {}, stopPropagation() {} } as any)
+  })
+}
+
+/** 空白处双击 → 放大 / 还原 */
+function onCanvasDblClick(evt: MouseEvent) {
+  cv.handleDoubleTap(evt)
+}
+
 function startDeviceDrag(evt: PointerEvent, d: DevBox) {
   evt.stopPropagation()
+  if (cv.trackPointerDown(evt)) return
   selected.value = { kind: 'device', id: d.id }
   cv.startDrag(evt, `dev-${d.id}`, 0, d.y)
   dragCtx = { kind: 'device', id: d.id, origin: { x: 0, y: d.y } }
+  lpItem.start(evt, (pos) => {
+    cv.endDrag(); dragCtx = null
+    openDeviceMenu({ clientX: pos.x, clientY: pos.y, preventDefault() {}, stopPropagation() {} } as any, d)
+  })
 }
 
 function startTrayDrag(evt: PointerEvent, t: TrayBox) {
@@ -473,13 +498,19 @@ function startTrayDrag(evt: PointerEvent, t: TrayBox) {
   } else if (!multiTrays.value.has(t.id)) {
     multiTrays.value = new Set()
   }
+  if (cv.trackPointerDown(evt)) return
   selected.value = { kind: 'tray', id: t.id }
   cv.startDrag(evt, `tray-${t.id}`, t.pos_x, t.pos_y)
   dragCtx = { kind: 'tray', id: t.id, origin: { x: t.pos_x, y: t.pos_y } }
+  lpItem.start(evt, (pos) => {
+    cv.endDrag(); dragCtx = null
+    openTrayMenu({ clientX: pos.x, clientY: pos.y, preventDefault() {}, stopPropagation() {} } as any, t)
+  })
 }
 
 function startUnitDrag(evt: PointerEvent, u: UnitBox) {
   evt.stopPropagation()
+  if (cv.trackPointerDown(evt)) return
   selected.value = { kind: 'unit', id: u.id }
   cv.startDrag(evt, `unit-${u.id}`, u.pos_x, u.pos_y)
   dragCtx = {
@@ -489,6 +520,9 @@ function startUnitDrag(evt: PointerEvent, u: UnitBox) {
 }
 
 function onPointerMove(evt: PointerEvent) {
+  if (cv.trackPointerMove(evt)) return
+  lpItem.move(evt)
+  lpCanvas.move(evt)
   cv.onMove(evt, (_key, x, y) => {
     const ctx = dragCtx
     if (!ctx) return
@@ -522,7 +556,9 @@ function onPointerMove(evt: PointerEvent) {
   })
 }
 
-function onPointerUp() {
+function onPointerUp(evt?: PointerEvent) {
+  lpItem.cancel(); lpCanvas.cancel()
+  if (evt) cv.trackPointerUp(evt)
   const key = cv.endDrag()
   const ctx = dragCtx
   dragCtx = null
@@ -985,8 +1021,9 @@ onBeforeUnmount(() => {
 
     <svg ref="svgRef" class="canvas"
          @wheel.prevent="cv.onWheel"
-         @pointerdown="selected = null; cv.startPan($event)"
+         @pointerdown="onCanvasDown"
          @pointermove="onPointerMove" @pointerup="onPointerUp" @pointerleave="onPointerUp"
+         @pointercancel="onPointerUp" @dblclick="onCanvasDblClick"
          @contextmenu.prevent="openCanvasMenu">
       <g :transform="`translate(${cv.pan.value.x} ${cv.pan.value.y}) scale(${cv.scale.value})`">
         <!-- ============ 网络机柜 ============ -->

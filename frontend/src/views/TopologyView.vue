@@ -7,6 +7,7 @@ import { useResourceStore } from '../stores/resource'
 import { useSessionStore } from '../stores/session'
 import { roomSelectOptions } from '../utils/rooms'
 import { useCanvas } from '../composables/useCanvas'
+import { useLongPress } from '../composables/useLongPress'
 import Icon from '../components/ui/Icon.vue'
 import ContextMenu from '../components/ui/ContextMenu.vue'
 import type { MenuItem } from '../components/ui/ContextMenu.vue'
@@ -179,19 +180,30 @@ async function saveLayout(silent = false) {
 }
 
 /* ---------------- 交互 ---------------- */
+/** 移动端长按 = 右键菜单（节点与画布各用一个实例，避免互相取消） */
+const lpNode = useLongPress()
+const lpCanvas = useLongPress()
+
 function onCanvasDown(evt: PointerEvent) {
+  if (cv.trackPointerDown(evt)) return      // 进入双指缩放
   selected.value = null
   cv.startPan(evt)
+  lpCanvas.start(evt, (p) => { cv.endDrag(); onCanvasLongPress(p) })
 }
 
 function onNodeDown(evt: PointerEvent, n: NodeBox) {
   evt.stopPropagation()
+  if (cv.trackPointerDown(evt)) return
   selected.value = { kind: n.kind, id: n.id }
   // 传入节点当前真实坐标，避免首次拖拽瞬移
   cv.startDrag(evt, n.key, n.x, n.y)
+  lpNode.start(evt, (p) => { cv.endDrag(); onNodeLongPress(p, n) })
 }
 
 function onPointerMove(evt: PointerEvent) {
+  if (cv.trackPointerMove(evt)) return       // 双指缩放中
+  lpNode.move(evt)
+  lpCanvas.move(evt)
   cv.onMove(evt, (key, x, y) => {
     pos.value = {
       ...pos.value,
@@ -200,9 +212,29 @@ function onPointerMove(evt: PointerEvent) {
   })
 }
 
-function onPointerUp() {
+function onPointerUp(evt: PointerEvent) {
+  lpNode.cancel()
+  lpCanvas.cancel()
+  cv.trackPointerUp(evt)
   const moved = cv.endDrag()
   if (moved) scheduleSave()
+}
+
+/** 触屏长按节点 → 打开节点菜单 */
+function onNodeLongPress(pos: { x: number; y: number }, n: NodeBox) {
+  const evt = { clientX: pos.x, clientY: pos.y, preventDefault() {}, stopPropagation() {} } as any
+  openNodeMenu(evt, n)
+}
+
+/** 触屏长按空白 → 打开画布菜单 */
+function onCanvasLongPress(pos: { x: number; y: number }) {
+  const evt = { clientX: pos.x, clientY: pos.y, preventDefault() {}, stopPropagation() {} } as any
+  openCanvasMenu(evt)
+}
+
+/** 空白处双击 → 放大 / 还原（节点上的双击是进入下一层） */
+function onCanvasDblClick(evt: MouseEvent) {
+  cv.handleDoubleTap(evt)
 }
 
 function enterNode(n: NodeBox) {
@@ -427,7 +459,9 @@ onBeforeUnmount(() => clearTimeout(saveTimer))
 
     <svg ref="svgRef" class="canvas"
          @wheel.prevent="cv.onWheel" @pointerdown="onCanvasDown" @pointermove="onPointerMove"
-         @pointerup="onPointerUp" @pointerleave="onPointerUp" @contextmenu.prevent="openCanvasMenu">
+         @pointerup="onPointerUp" @pointerleave="onPointerUp" @pointercancel="onPointerUp"
+         @dblclick="onCanvasDblClick"
+         @contextmenu.prevent="openCanvasMenu">
       <defs>
         <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
           <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--cv-grid)" stroke-width="1" />
@@ -455,6 +489,7 @@ onBeforeUnmount(() => clearTimeout(saveTimer))
         <g v-for="n in nodes" :key="n.key" :transform="`translate(${n.x} ${n.y})`"
            class="node" :class="{ sel: selected?.kind === n.kind && selected?.id === n.id }"
            @pointerdown="onNodeDown($event, n)"
+           @pointercancel="onPointerUp"
            @dblclick.stop="enterNode(n)"
            @contextmenu.prevent.stop="openNodeMenu($event, n)">
           <rect :width="n.w" :height="n.h" rx="11"

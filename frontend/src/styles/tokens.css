@@ -181,3 +181,56 @@ body {
 .grow { flex: 1; }
 .row { display: flex; align-items: center; gap: var(--space-2); }
 .col { display: flex; flex-direction: column; }
+
+/* ===== 移动端全局适配 ===== */
+@media (max-width: 767px) {
+  /* 画布：禁用浏览器默认手势，交给自研双指缩放 */
+  .canvas, svg.canvas {
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 弹窗/抽屉在手机上全屏，避免小屏挤压 */
+  .dlg,
+  .peer-modal,
+  .cd,
+  .rule-modal,
+  .cable-modal,
+  .import-modal {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+  .ds {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+  }
+
+  /* 浮层在手机上适当收窄，避免超出屏幕 */
+  .obj-tip, .port-tip { max-width: 82vw; }
+
+  /* 表格：允许横向滚动而不是压缩列宽 */
+  .n-data-table .n-data-table-base-table-body { overflow-x: auto; }
+
+  /* 触摸目标：按钮最小 40px 高 */
+  .n-button--small-type { min-height: 32px; }
+
+  /* 底部悬浮窗让位给底部导航 */
+  .dock {
+    right: 10px !important;
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
+    width: calc(100vw - 20px) !important;
+  }
+}
+
+/* 触屏设备：隐藏仅鼠标可用的提示 */
+@media (hover: none) and (pointer: coarse) {
+  .hint-mouse { display: none; }
+}
