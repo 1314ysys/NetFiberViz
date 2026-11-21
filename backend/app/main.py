@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
                     print("  请立即登录并修改，此密码不会再显示")
                     print("=" * 64)
                 else:
-                    pwd = "admin123"
+                    pwd = "admin1234"
             if len(pwd) < 8:
                 raise RuntimeError("INIT_ADMIN_PASSWORD 长度至少 8 位")
             db.add(U(username="admin", password_hash=hash_password(pwd),

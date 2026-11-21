@@ -19,7 +19,7 @@ async def main():
         await conn.run_sync(Base.metadata.create_all)
     async with SessionLocal() as db:
         if (await db.execute(select(func.count(User.id)))).scalar() == 0:
-            db.add(User(username="admin", password_hash=hash_password("admin123"),
+            db.add(User(username="admin", password_hash=hash_password("admin1234"),
                         display_name="演示管理员", role="core_admin"))
             await db.flush()
 
