@@ -33,11 +33,32 @@
 
 ## 快速开始
 
-### 方式一：容器（推荐）
+### 获取镜像
+
+**方式 A：下载 Release 中的离线镜像（推荐，无需构建）**
+
+从 [Releases v1.0](https://github.com/1314ysys/NetFiberViz/releases/tag/v1.0) 下载 `netfiberviz-1.0.tar.gz`（78 MB），然后：
+
+```bash
+gunzip -c netfiberviz-1.0.tar.gz | podman load
+```
+
+**方式 B：本地构建**
 
 ```bash
 podman build -t netfiberviz:1.0 .
 
+# 国内网络（npm / pip 走镜像加速）
+podman build -t netfiberviz:1.0 \
+  --build-arg NPM_REGISTRY=https://registry.npmmirror.com \
+  --build-arg PIP_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple .
+```
+
+> 基础镜像也可替换：`--build-arg PYTHON_IMAGE=... --build-arg NODE_IMAGE=...`
+
+### 运行
+
+```bash
 podman run -d --name netfiberviz -p 8000:8000 \
   -e ENV=prod \
   -e JWT_SECRET="$(openssl rand -base64 48)" \
@@ -49,7 +70,6 @@ podman run -d --name netfiberviz -p 8000:8000 \
 ```
 
 ### 方式二：源码运行
-
 ```bash
 # 后端
 cd backend
