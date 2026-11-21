@@ -1,0 +1,32 @@
+# 只把构建必需的源码送进容器，减小上下文与构建时间
+.git
+.gitignore
+.github
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.mypy_cache
+
+# 后端：不带测试、脚本、数据库、本地环境
+backend/tests
+backend/scripts
+backend/*.db
+backend/*.sqlite3
+backend/pentest.py
+backend/pyproject.toml
+backend/Dockerfile
+backend/lldp_sample.txt
+
+# 前端：由镜像内 node 阶段构建，不送 node_modules/dist 进上下文
+frontend/node_modules
+frontend/dist
+frontend/.vite
+
+# 其余非运行必需
+deploy
+docs
+tasks
+*.md
+!README.md
+.vscode
+.idea

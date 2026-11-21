@@ -1,0 +1,183 @@
+/* ===== 设计令牌：深色 NOC 控制台 / 浅色 ===== */
+
+/* 深色变量同时挂在 :root、[data-theme="dark"] 与 .theme-dark 上，
+   后者允许局部强制深色（如大屏、登录页品牌区） */
+:root,
+[data-theme="dark"],
+.theme-dark {
+  /* 业务状态色（ODF 孔位 / 端口） */
+  --c-free: #64748b;
+  --c-used: #22c55e;
+  --c-reserved: #3b82f6;
+  --c-fault: #ef4444;
+  /* 纤芯专用状态色 */
+  --c-unused: #64748b;
+  --c-landed: #22c55e;
+  --c-spliced: #a855f7;
+  --c-spare: #f59e0b;
+  /* 连接类型色 */
+  --c-cord: #f97316;
+  --c-inter: #a855f7;
+  --c-link: #06b6d4;
+
+  /* 表面层次 */
+  --bg-app: #080d16;
+  --bg-panel: #0f1623;
+  --bg-elevated: #16202f;
+  --bg-hover: #1b2637;
+  --border: #1e2a3a;
+  --border-strong: #2b3a4d;
+
+  /* 外壳（侧边栏 / 顶栏 / 弹层） */
+  --side-bg: linear-gradient(180deg, #0d1420, #0a1018);
+  --side-border: #1e2a3a;
+  --topbar-bg: rgba(13, 20, 32, 0.72);
+  --menu-bg: #16202f;
+  --avatar-bg: linear-gradient(135deg, #1e3a5f, #24405f);
+  --brand-grad: linear-gradient(135deg, #38bdf8, #6366f1);
+  --brand-fg: #041018;
+
+  /* 文本 */
+  --text-1: #e6edf6;
+  --text-2: #9fb0c4;
+  --text-3: #64748b;
+
+  /* 主色 */
+  --accent: #38bdf8;
+  --accent-soft: rgba(56, 189, 248, 0.12);
+  /* 警示色（浅色下需更深才可读） */
+  --warn: #f59e0b;
+  --warn-soft: rgba(245, 158, 11, 0.12);
+  --warn-border: rgba(245, 158, 11, 0.30);
+
+  /* 画布专用（SVG 内可直接用 var()） */
+  --cv-bg: #080d16;
+  --cv-grid: #16202f;
+  --cv-node: #16202f;
+  --cv-node-2: #121a27;
+  --cv-node-stroke: #2b3a4d;
+  --cv-odf: #151728;
+  --cv-odf-stroke: #3b3a63;
+  --cv-text: #e6edf6;
+  --cv-sub: #8fa3ba;
+  --cv-dim: #64748b;
+  --cv-slot-bg: #0f1623;
+  --cv-slot-stroke: #22303f;
+
+  /* 尺度 */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow-1: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+}
+
+/* ===== 浅色主题 ===== */
+[data-theme="light"] {
+  --c-free: #94a3b8;
+  --c-used: #16a34a;
+  --c-reserved: #2563eb;
+  --c-fault: #dc2626;
+  --c-unused: #94a3b8;
+  --c-landed: #16a34a;
+  --c-spliced: #9333ea;
+  --c-spare: #b45309;
+  --c-cord: #ea580c;
+  --c-inter: #9333ea;
+  --c-link: #0891b2;
+
+  --bg-app: #f3f6fb;
+  --bg-panel: #ffffff;
+  --bg-elevated: #f8fafc;
+  --bg-hover: #eef2f8;
+  --border: #e3e9f1;
+  --border-strong: #cbd5e1;
+
+  /* 外壳：侧边栏与顶栏改为浅色 */
+  --side-bg: linear-gradient(180deg, #ffffff, #f7f9fd);
+  --side-border: #e3e9f1;
+  --topbar-bg: rgba(255, 255, 255, 0.82);
+  --menu-bg: #ffffff;
+  --avatar-bg: linear-gradient(135deg, #dbeafe, #e0e7ff);
+  --brand-grad: linear-gradient(135deg, #0ea5e9, #4f46e5);
+  --brand-fg: #ffffff;
+
+  --text-1: #0f172a;
+  --text-2: #475569;
+  --text-3: #94a3b8;
+
+  --accent: #0284c7;
+  --accent-soft: rgba(2, 132, 199, 0.10);
+  --warn: #b45309;
+  --warn-soft: rgba(180, 83, 9, 0.10);
+  --warn-border: rgba(180, 83, 9, 0.28);
+
+  --cv-bg: #f8fafc;
+  --cv-grid: #e2e8f0;
+  --cv-node: #ffffff;
+  --cv-node-2: #f1f5f9;
+  --cv-node-stroke: #cbd5e1;
+  --cv-odf: #faf5ff;
+  --cv-odf-stroke: #d8b4fe;
+  --cv-text: #0f172a;
+  --cv-sub: #475569;
+  --cv-dim: #94a3b8;
+  --cv-slot-bg: #ffffff;
+  --cv-slot-stroke: #dbe3ee;
+
+  --shadow-1: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-2: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #app { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg-app);
+  color: var(--text-1);
+  font-family: "Inter", "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .18s ease, color .18s ease;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 6px;
+  border: 2px solid var(--bg-app);
+}
+::-webkit-scrollbar-thumb:hover { filter: brightness(1.15); }
+
+::selection { background: var(--accent-soft); }
+
+/* 通用工具类 */
+.mono { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+.muted { color: var(--text-2); }
+.dim { color: var(--text-3); }
+.page-title { font-size: 17px; font-weight: 600; letter-spacing: 0.2px; }
+.page-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.panel-head {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+}
+.panel-body { padding: 16px; }
+.grow { flex: 1; }
+.row { display: flex; align-items: center; gap: var(--space-2); }
+.col { display: flex; flex-direction: column; }

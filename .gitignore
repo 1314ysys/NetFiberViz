@@ -1,0 +1,32 @@
+# 依赖与构建产物
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+dist/
+*.egg-info/
+
+# 数据库与运行数据
+*.db
+*.sqlite3
+backend/*.db
+backend/data/
+
+# 环境与密钥（严禁提交）
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# 编辑器与系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 本地备份与临时产物
+backup_views/
+tasks/
+*.log
+port-shapes-preview.svg

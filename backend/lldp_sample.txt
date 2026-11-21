@@ -1,0 +1,3 @@
+﻿GE0/0/1, GigabitEthernet0/0/3, 对端SW
+XGE0/1/1, Ten-GigabitEthernet1/0/1
+NOPE-1, GE0/0/99, 不存在端口
