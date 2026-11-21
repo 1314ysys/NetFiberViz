@@ -10,26 +10,34 @@
 
 ARG NODE_IMAGE=node:20-alpine
 ARG PYTHON_IMAGE=python:3.11-slim
+# 国内网络可覆盖为：
+#   --build-arg NPM_REGISTRY=https://registry.npmmirror.com
+#   --build-arg PIP_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple
+ARG NPM_REGISTRY=https://registry.npmjs.org/
+ARG PIP_INDEX=https://pypi.org/simple
 
 # ---------- 1. 构建前端 ----------
 FROM ${NODE_IMAGE} AS frontend-build
+ARG NPM_REGISTRY
 WORKDIR /fe
 ENV CI=true
-RUN corepack enable
-COPY frontend/package.json frontend/pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# 镜像内只需最终静态产物，使用 npm 以避免 pnpm 严格构建脚本策略的中断
+COPY frontend/package.json ./
+RUN npm config set registry "$NPM_REGISTRY" \
+ && npm install --no-audit --no-fund
 COPY frontend/ ./
-RUN pnpm build
+RUN npm run build
 
 # ---------- 2. 安装 Python 依赖 ----------
 FROM ${PYTHON_IMAGE} AS builder
+ARG PIP_INDEX
 WORKDIR /build
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN pip install --upgrade pip && pip install \
+RUN pip install --upgrade pip -i "$PIP_INDEX" && pip install -i "$PIP_INDEX" \
     "fastapi>=0.115" \
     "uvicorn[standard]>=0.30" \
     "sqlalchemy[asyncio]>=2.0" \
